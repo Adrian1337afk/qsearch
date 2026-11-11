@@ -1,0 +1,135 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* qsearch look: compact, flat, rounded, minimal chrome.
+ *
+ * Colours come from the qdran.de logo (#0b0b0c background, #c8ff3d accent).
+ * --qsearch-accent-user and the qsearch-layout attribute are set per window
+ * by QSearchFeatures.sys.mjs. */
+
+:root {
+  --qsearch-accent: var(--qsearch-accent-user, light-dark(#4d6b00, #c8ff3d));
+  --color-accent-primary: var(--qsearch-accent);
+  --focus-outline-color: var(--qsearch-accent);
+
+  --tab-border-radius: 9px;
+  --tab-block-margin: 3px;
+  --toolbarbutton-border-radius: 8px;
+}
+
+/* Flat toolbar: no separator lines between the rows. */
+#nav-bar {
+  border-top: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Address bar: soft pill without an outline until it is focused. */
+.urlbar-background,
+#searchbar {
+  border-radius: 10px;
+}
+
+#urlbar:not([focused]) > .urlbar-background {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* Selected tab: thin accent line instead of a heavy shadow. */
+.tabbrowser-tab[selected] > .tab-stack > .tab-background {
+  box-shadow: inset 0 -2px 0 var(--qsearch-accent);
+}
+
+/* qsearch toolbar button. */
+#qsearch-privacy-button {
+  list-style-image: url("chrome://global/skin/icons/security.svg");
+
+  &[qsearch-mode="max"] > .toolbarbutton-icon {
+    fill: var(--qsearch-accent);
+  }
+
+  > .toolbarbutton-menu-dropmarker {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------- layouts
+ *
+ * classic    Firefox default: tabs above the toolbar.
+ * vertical   Firefox vertical tabs (set by pref, nothing to do here).
+ * compact    Tabs and toolbar share one row.
+ * frameless  Like compact, and the row slides away until the pointer
+ *            touches the top edge of the window.
+ */
+
+:root:is([qsearch-layout="compact"], [qsearch-layout="frameless"]):not(
+    [customizing]
+  ) {
+  #navigator-toolbox {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+  }
+
+  /* Menu bar, bookmarks bar and anything else keep a full row. */
+  #navigator-toolbox > :not(#nav-bar, #TabsToolbar) {
+    flex: 1 0 100%;
+    order: 3;
+  }
+
+  #toolbar-menubar {
+    order: 0;
+  }
+
+  #nav-bar {
+    order: 1;
+    flex: 0 1 44vw;
+    min-width: 380px;
+    background: transparent !important;
+  }
+
+  #TabsToolbar {
+    order: 2;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  /* The tab strip brings the window buttons; the toolbar's copy is spare. */
+  #nav-bar .titlebar-buttonbox-container,
+  #TabsToolbar .titlebar-spacer {
+    display: none;
+  }
+}
+
+:root[qsearch-layout="frameless"]:not([customizing], [inFullscreen]) {
+  #navigator-toolbox {
+    position: relative;
+    z-index: 10;
+    /* Leave a 3px strip at the top edge as the hover target. */
+    margin-bottom: calc(3px - var(--qsearch-toolbox-height, 44px));
+    transform: translateY(calc(3px - 100%));
+    opacity: 0;
+    /* Hiding waits 3s after the pointer leaves, then the bar slides away and
+     * only after that the page moves up into the freed space. */
+    transition:
+      transform 0.16s ease 3s,
+      opacity 0.16s ease 3s,
+      margin-bottom 0s linear 3.16s;
+
+    /* Shown: on hover, while typing in it, or while one of its menus is
+     * open. The bar takes its normal space (same as the compact layout), so
+     * the page moves down instead of being covered. Showing is immediate. */
+    &:is(:hover, :focus-within, :has([open])) {
+      margin-bottom: 0;
+      transform: none;
+      opacity: 1;
+      transition-delay: 0s;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #navigator-toolbox {
+      transition: none;
+    }
+  }
+}

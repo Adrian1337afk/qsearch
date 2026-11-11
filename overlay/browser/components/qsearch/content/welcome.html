@@ -1,0 +1,77 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src chrome:; img-src chrome: data:; object-src 'none'"
+    />
+    <title>Welcome to qsearch</title>
+    <link rel="icon" href="chrome://branding/content/icon32.png" />
+    <link rel="stylesheet" href="chrome://browser/content/qsearch/page.css" />
+  </head>
+  <body class="welcome">
+    <main>
+      <div class="brand">
+        <img class="qs-logo" src="chrome://browser/content/qsearch/logo.svg" alt="" />
+        qsearch
+      </div>
+      <p class="lead">
+        Set it up once. Everything here can be changed later with the lock
+        button in the toolbar.
+      </p>
+
+      <section>
+        <h2>Privacy mode</h2>
+        <div class="choices" id="modes"></div>
+      </section>
+
+      <section>
+        <h2>Search engine</h2>
+        <div class="choices" id="engines"></div>
+      </section>
+
+      <section>
+        <h2>Layout</h2>
+        <div class="choices" id="layouts"></div>
+      </section>
+
+      <section>
+        <h2>Accent colour</h2>
+        <div class="swatches" id="accents"></div>
+      </section>
+
+      <section>
+        <h2>Extras</h2>
+        <label class="check">
+          <input type="checkbox" id="cookies" />
+          <span>
+            Delete a site's cookies when its last tab closes
+            <small>Signs you out of every site you have not marked "Keep cookies".</small>
+          </span>
+        </label>
+        <label class="check">
+          <input type="checkbox" id="containers" />
+          <span>
+            Containers for Google, Meta and Amazon
+            <small>Their sites cannot see what you do elsewhere.</small>
+          </span>
+        </label>
+        <label class="check">
+          <input type="checkbox" id="updates" />
+          <span>
+            Tell me about new qsearch versions
+            <small>Asks github.com once a day. Nothing is installed automatically.</small>
+          </span>
+        </label>
+      </section>
+
+      <button class="primary" id="done">Start browsing</button>
+    </main>
+    <script src="chrome://browser/content/qsearch/accent.js"></script>
+    <script src="chrome://browser/content/qsearch/welcome.js"></script>
+  </body>
+</html>

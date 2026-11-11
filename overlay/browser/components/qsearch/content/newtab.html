@@ -1,0 +1,45 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src chrome:; img-src chrome: page-icon: data:; object-src 'none'"
+    />
+    <title>New Tab</title>
+    <link rel="icon" href="chrome://branding/content/icon32.png" />
+    <link rel="stylesheet" href="chrome://browser/content/qsearch/page.css" />
+  </head>
+  <body class="newtab">
+    <main>
+      <div class="brand">
+        <img class="qs-logo" src="chrome://browser/content/qsearch/logo.svg" alt="" />
+        qsearch
+      </div>
+      <div id="clock"></div>
+      <form id="search">
+        <input
+          id="query"
+          type="text"
+          autocomplete="off"
+          aria-label="Search the web or enter an address"
+          placeholder="Search the web"
+        />
+      </form>
+      <nav id="shortcuts" aria-label="Most visited sites"></nav>
+      <section id="activity" hidden>
+        <h2>Recent activity</h2>
+        <ul id="activity-links"></ul>
+      </section>
+      <div id="stats" hidden>
+        <div><b id="stat-week">0</b><span>trackers blocked this week</span></div>
+        <div><b id="stat-total">0</b><span>trackers blocked in total</span></div>
+      </div>
+    </main>
+    <script src="chrome://browser/content/qsearch/accent.js"></script>
+    <script src="chrome://browser/content/qsearch/newtab.js"></script>
+  </body>
+</html>

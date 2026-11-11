@@ -1,0 +1,33 @@
+# qsearch build configuration (Windows x64, Firefox ESR base)
+
+ac_add_options --enable-application=browser
+ac_add_options --target=x86_64-pc-windows-msvc
+
+# Identity
+ac_add_options --with-app-name=qsearch
+ac_add_options --with-branding=browser/branding/qsearch
+export MOZ_APP_REMOTINGNAME=qsearch
+
+# Release-quality build
+ac_add_options --disable-debug
+ac_add_options --enable-optimize
+ac_add_options --enable-release
+ac_add_options --enable-hardening
+ac_add_options --enable-rust-simd
+ac_add_options --disable-tests
+
+# Nothing phones home
+ac_add_options --disable-crashreporter
+ac_add_options --disable-updater
+ac_add_options --disable-default-browser-agent
+ac_add_options --disable-maintenance-service
+ac_add_options --enable-update-channel=release
+
+export MOZ_TELEMETRY_REPORTING=
+mk_add_options MOZ_CRASHREPORTER=0
+mk_add_options MOZ_DATA_REPORTING=0
+mk_add_options MOZ_SERVICES_HEALTHREPORT=0
+mk_add_options MOZ_TELEMETRY_REPORTING=0
+
+# Keep build output outside the source tree
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/../obj-qsearch

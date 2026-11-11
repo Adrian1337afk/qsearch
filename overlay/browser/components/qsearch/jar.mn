@@ -1,0 +1,12 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+browser.jar:
+    content/browser/qsearch/page.css        (content/page.css)
+    content/browser/qsearch/logo.svg        (content/logo.svg)
+    content/browser/qsearch/accent.js       (content/accent.js)
+    content/browser/qsearch/newtab.html     (content/newtab.html)
+    content/browser/qsearch/newtab.js       (content/newtab.js)
+    content/browser/qsearch/welcome.html    (content/welcome.html)
+    content/browser/qsearch/welcome.js      (content/welcome.js)
