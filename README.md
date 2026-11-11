@@ -42,7 +42,7 @@ reproduced exactly.
 | Containers | Google, Meta and Amazon sites open in their own container automatically |
 | Proxy | Optional: private windows go through a SOCKS proxy (Tor on 127.0.0.1:9050) |
 | Panic | Alt+Shift+Delete closes every tab and wipes all browsing data |
-| Extensions | uBlock Origin is installed on first start |
+| Extensions | uBlock Origin and Consent-O-Matic are installed on first start |
 | DRM | Enabled by default (Widevine), so Netflix, Spotify etc. work |
 | Search | DuckDuckGo default; Qwant, Ecosia, Startpage, Brave; bangs such as `!w`, `!yt`, `!gh`; custom engines under Settings > Search |
 | Layouts | Classic, Compact (one row), Vertical tabs (default), Frameless (Ctrl+Alt+C) |

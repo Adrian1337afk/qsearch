@@ -356,6 +356,18 @@ qsearch-home-stats =
         )
         print("edited", prefs_page)
 
+    # Installer: Windows "Installed apps" shows the publisher written here.
+    shared_nsh = src / "browser/installer/windows/nsis/shared.nsh"
+    text = shared_nsh.read_text(encoding="utf-8")
+    publisher = '''"Publisher" "Mozilla" 0'''
+    if publisher in text:
+        shared_nsh.write_text(
+            text.replace(publisher, '''"Publisher" "qdran" 0''', 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        print("edited", shared_nsh)
+
     # 5. mozconfig
     shutil.copyfile(ROOT / "config" / "mozconfig", src / "mozconfig")
     print("qsearch tree ready:", src)

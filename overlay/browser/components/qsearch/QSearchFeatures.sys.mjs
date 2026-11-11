@@ -33,7 +33,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
 
 // Bumped for every qsearch release built on the same Firefox version.
 // The release tag on GitHub is "<firefox version>-<QSEARCH_RELEASE>".
-const QSEARCH_RELEASE = "2";
+const QSEARCH_RELEASE = "3";
 const REPO = "Adrian1337afk/qsearch";
 const BUTTON_ID = "qsearch-privacy-button";
 
