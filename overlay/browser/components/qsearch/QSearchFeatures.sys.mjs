@@ -33,7 +33,7 @@ ChromeUtils.defineESModuleGetters(lazy, {
 
 // Bumped for every qsearch release built on the same Firefox version.
 // The release tag on GitHub is "<firefox version>-<QSEARCH_RELEASE>".
-const QSEARCH_RELEASE = "1";
+const QSEARCH_RELEASE = "2";
 const REPO = "Adrian1337afk/qsearch";
 const BUTTON_ID = "qsearch-privacy-button";
 
@@ -683,6 +683,21 @@ export const QSearchFeatures = {
 
     let url = channel.URI.spec;
     let wasBlank = BLANK_PAGES.has(browser.currentURI.spec);
+    // The reopened load must look exactly like the original one to the
+    // target site. If a web page triggered it (a link, a redirect), the new
+    // load is triggered by that same origin and carries the same referrer;
+    // only a load the user started (address bar, bookmark) stays a
+    // system-triggered one. Reopening everything as "typed by the user"
+    // would send SameSite cookies on cross-site links and defeat the
+    // target site's CSRF protection.
+    let triggeringPrincipal = loadInfo.triggeringPrincipal;
+    if (!triggeringPrincipal.isSystemPrincipal) {
+      triggeringPrincipal = Services.scriptSecurityManager.principalWithOA(
+        triggeringPrincipal,
+        { ...triggeringPrincipal.originAttributes, userContextId: wanted }
+      );
+    }
+    let referrerInfo = channel.referrerInfo;
     channel.cancel(Cr.NS_BINDING_ABORTED);
 
     Services.tm.dispatchToMainThread(() => {
@@ -692,8 +707,8 @@ export const QSearchFeatures = {
       let newTab = win.gBrowser.addTab(url, {
         userContextId: wanted,
         tabIndex: tab._tPos + 1,
-        triggeringPrincipal:
-          Services.scriptSecurityManager.getSystemPrincipal(),
+        triggeringPrincipal,
+        referrerInfo,
       });
       if (tab.selected) {
         win.gBrowser.selectedTab = newTab;
@@ -716,7 +731,25 @@ export const QSearchFeatures = {
 
   // ------------------------------------------------ private windows by proxy
 
+  /**
+   * WebRTC opens its own UDP connections, which a SOCKS proxy for page loads
+   * does not cover: a page could learn the real IP address. While the proxy
+   * option is on, WebRTC in private windows may only use the proxy.
+   */
+  _applyProxyWebRTC() {
+    Services.prefs
+      .getDefaultBranch("")
+      .setBoolPref(
+        "media.peerconnection.ice.proxy_only_if_pbmode",
+        getPref(PREF.proxyEnabled, false)
+      );
+  },
+
   _registerProxyFilter() {
+    this._applyProxyWebRTC();
+    Services.prefs.addObserver(PREF.proxyEnabled, () =>
+      this._applyProxyWebRTC()
+    );
     let pps = Cc["@mozilla.org/network/protocol-proxy-service;1"].getService(
       Ci.nsIProtocolProxyService
     );
@@ -1043,7 +1076,7 @@ export const QSearchFeatures = {
         type: "checkbox",
         checked: getPref(PREF.proxyEnabled, false),
         tooltip:
-          "Sends private windows through a SOCKS proxy such as a running Tor.",
+          "Sends incognito windows through a SOCKS proxy such as a running Tor. WebRTC (video calls) in those windows is limited to the proxy.",
       },
       toggle(PREF.proxyEnabled)
     );
