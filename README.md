@@ -14,6 +14,10 @@ Windows 10/11, 64-bit: see [Releases](https://github.com/Adrian1337afk/qsearch/r
 - `qsearch-…win64.portable.zip`: unpack anywhere and start
   `qsearch-portable.bat`. The profile stays in a `profile` folder next to it.
 
+Linux x86_64: `qsearch-…linux-x86_64.AppImage` from the same page. Make it
+executable (`chmod +x`) and start it. Needs glibc 2.18 or newer, GTK 3 and
+FUSE 2 (`libfuse2`); without FUSE start it with `--appimage-extract-and-run`.
+
 The files are not code-signed, so Windows SmartScreen shows "Unknown
 publisher" on first start: choose "More info", then "Run anyway". Check the
 SHA-256 sums in the release notes if you want to be sure the download is
@@ -74,6 +78,8 @@ scripts/mach.ps1                  runs mach in the MozillaBuild environment
 scripts/dev.ps1                   apply + rebuild + start a test browser
 scripts/qtest.py                  drives a test browser (dev.ps1 -Test)
 scripts/make_portable.ps1         portable zip from a finished package
+scripts/make_appimage.sh          Linux AppImage from a finished package
+config/mozconfig.linux            Linux build configuration
 ```
 
 ## Build (Windows)
@@ -111,6 +117,28 @@ about 40 GB free disk.
    .\scripts\mach.ps1 run
    .\scripts\mach.ps1 package
    ```
+
+## Build (Linux)
+
+Tested on Ubuntu 26.04 under WSL 2 (build on the Linux filesystem, not
+`/mnt/...`). Needs about 40 GB free disk and 16 GB RAM plus swap. The release
+patch already holds every qsearch and LibreWolf change, so `apply.py` is not
+needed.
+
+```bash
+sudo apt install git curl python3 python3-pip python3-venv build-essential m4 unzip zip   pkg-config libgtk-3-dev libdbus-glib-1-dev libpulse-dev libasound2-dev libx11-xcb-dev   libxt-dev librsvg2-bin desktop-file-utils
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+git clone --depth 1 --branch FIREFOX_153_7_0esr_RELEASE https://github.com/mozilla-firefox/firefox.git firefox
+cd firefox
+git apply /path/to/qsearch-153.7.0-3.patch        # from the release page
+cp /path/to/qsearch/config/mozconfig.linux mozconfig
+
+./mach --no-interactive bootstrap --application-choice browser
+./mach build
+./mach package
+/path/to/qsearch/scripts/make_appimage.sh obj-qsearch-linux/dist/qsearch-153.7.0.en-US.linux-x86_64.tar.xz .
+```
 
 ## Changing things
 
