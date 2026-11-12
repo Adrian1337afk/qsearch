@@ -6,6 +6,23 @@ privacy patches, the qdran.de logo, and a compact, customizable UI.
 qsearch is an independent project. It is not made, endorsed or supported by
 Mozilla or LibreWolf.
 
+![qsearch new tab page with vertical tabs](docs/screenshots/newtab.png)
+
+## Screenshots
+
+| Compact layout: tabs and toolbar in one row | Vertical tabs |
+| --- | --- |
+| ![Compact layout](docs/screenshots/compact.png) | ![Vertical tabs](docs/screenshots/vertical.png) |
+
+| First-run page: privacy mode, search engine, layout, accent | Settings with a purple accent colour |
+| --- | --- |
+| ![First-run page](docs/screenshots/welcome.png) | ![Settings with purple accent](docs/screenshots/settings.png) |
+
+## Support the project
+
+qsearch is free and has no ads, sponsors or tracking. If you want to help
+keep it going: [donate on GoFundMe](https://gofund.me/a3efe3c0c).
+
 ## Download
 
 Windows 10/11, 64-bit: see [Releases](https://github.com/Adrian1337afk/qsearch/releases/latest).
