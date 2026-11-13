@@ -84,7 +84,8 @@ AC = "mobile/android/android-components/components"
 def gecko(t):
     t.append("mobile/android/app/geckoview-prefs.js",
              (HERE / "geckoview-prefs.qsearch.js").read_text(encoding="utf-8"))
-    shutil.copyfile(HERE / "mozconfig", t.root / "mozconfig")
+    # Only when it differs: a fresh mozconfig makes mach rebuild the engine.
+    t.copy(HERE / "mozconfig", "mozconfig")
 
 
 QSEARCH_KT = '''/* This Source Code Form is subject to the terms of the Mozilla Public
@@ -258,6 +259,82 @@ def step_40_search(t):
               "            regionDefaultSearchEngineId = filteredRegionSearchEngines\n"
               '                .firstOrNull { it.id == "ddg" || it.name == "DuckDuckGo" }?.id\n'
               "                ?: regionBundle.await().defaultSearchEngineId,")
+
+
+# The desktop qsearch palette (overlay/browser/components/qsearch/content/page.css).
+BG, PANEL, PANEL_HOVER, LINE = "0B0B0C", "161618", "1E1E21", "2A2A2E"
+TEXT, MUTED, ACCENT, PRIVATE = "F2F2F0", "A0A0A8", "C8FF3D", "A78BFA"
+DARK_SCHEME = {
+    "primary": ACCENT, "on_primary": BG,
+    "primary_container": "2C3A08", "on_primary_container": "E6FFA8",
+    "primary_inverse": "4D6B00",
+    "secondary": TEXT, "on_secondary": BG,
+    "secondary_container": PANEL_HOVER, "on_secondary_container": TEXT,
+    "tertiary": ACCENT, "on_tertiary": BG,
+    "tertiary_container": PANEL, "on_tertiary_container": TEXT,
+    "background": BG, "on_background": TEXT,
+    "surface": BG, "on_surface": TEXT,
+    "surface_variant": PANEL_HOVER, "on_surface_variant": MUTED,
+    "outline": "45454B", "outline_variant": LINE,
+    "surface_bright": PANEL_HOVER, "surface_dim": "050506",
+    "surface_container": PANEL, "surface_container_high": PANEL_HOVER,
+    "surface_container_highest": "26262A", "surface_container_low": "101012",
+    "surface_container_lowest": BG,
+}
+# Material names that differ between the XML colours and the Kotlin scheme.
+KOTLIN_NAMES = {"primary_inverse": "inversePrimary"}
+NIGHT_EXTRA = {
+    "fx_mobile_splashscreen_background": BG,
+    "homepage_edge_to_edge_gradient_start": BG,
+    "homepage_edge_to_edge_gradient_end": PANEL,
+    "homepage_tab_edge_to_edge_tab_strip_item_background_active": PANEL_HOVER,
+    "homepage_tab_edge_to_edge_tab_strip_item_background_inactive": PANEL,
+    "accent_normal_theme": ACCENT,
+    "accent_high_contrast_normal_theme": ACCENT,
+    "fill_link_from_clipboard_normal_theme": ACCENT,
+    "prompt_login_edit_text_cursor_color_normal_theme": ACCENT,
+    "protections_dashboard_progress_bar": ACCENT,
+}
+
+
+def camel(name):
+    head, *rest = name.split("_")
+    return KOTLIN_NAMES.get(name, head + "".join(w.capitalize() for w in rest))
+
+
+def scheme_body(text, func, scheme):
+    """Rewrite the colour arguments of one `fun <func>(): ColorScheme = ...(` block."""
+    start = text.index(f"fun {func}(): ColorScheme")
+    end = text.index("\n)\n", start)
+    body = text[start:end]
+    for name, hexv in scheme.items():
+        body, n = re.subn(rf"(\n    {camel(name)} = )[^\n]+,", rf"\g<1>Color(0xFF{hexv}),", body)
+        if n != 1:
+            die(f"AcornColors.kt: {func}: {camel(name)} not found")
+    return text[:start] + body + text[end:]
+
+
+def step_45_colours(t):
+    """Dark by default, in the colours of desktop qsearch."""
+    k = AC + "/compose/base/src/main/java/mozilla/components/compose/base/theme/AcornColors.kt"
+    text = t.read(k)
+    text = scheme_body(text, "acornDarkColorScheme", DARK_SCHEME)
+    text = scheme_body(text, "acornPrivateColorScheme", dict(DARK_SCHEME, primary=PRIVATE, tertiary=PRIVATE))
+    t.write(k, text)
+
+    x = FENIX + "/src/main/res/values-night/colors.xml"
+    text = t.read(x)
+    colours = {"fx_mobile_" + name: hexv for name, hexv in DARK_SCHEME.items()}
+    colours.update(NIGHT_EXTRA)
+    for name, hexv in colours.items():
+        text, n = re.subn(rf'(<color name="{name}">)[^<]+', rf"\g<1>#{hexv}", text)
+        if n != 1:
+            die(f"values-night/colors.xml: {name} not found")
+    t.write(x, text)
+
+    t.replace(SRC + "/utils/Settings.kt",
+              "appContext.getPreferenceKey(R.string.pref_key_dark_theme),\n        default = false,",
+              "appContext.getPreferenceKey(R.string.pref_key_dark_theme),\n        default = true,")
 
 
 def step_50_icons(t):

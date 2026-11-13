@@ -7,6 +7,7 @@ Called by apply_android.py. Needs `rsvg-convert` (librsvg2-bin), ImageMagick
 The logo is `branding/logo.svg`: a lime (#c8ff3d) Q on #0b0b0c. Private mode
 uses purple (#a78bfa).
 """
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -68,6 +69,38 @@ def boxed_logo(color, dp=24):
 """ + BOX_PATH.format(c=DARK) + Q_PATHS.format(c=color) + """    </group>
 </vector>
 """)
+
+
+def sized_logo(old_xml, mono=False):
+    """A vector with the size of the one it replaces, showing the logo centred.
+    `mono`: only the Q in white, for icons the system tints."""
+    w = float(re.search(r'android:width="([\d.]+)dp"', old_xml).group(1))
+    h = float(re.search(r'android:height="([\d.]+)dp"', old_xml).group(1))
+    s = min(w, h)
+    body = Q_PATHS.format(c="#ffffff") if mono else BOX_PATH.format(c=DARK) + Q_PATHS.format(c=LIME)
+    return (LICENSE + f"""<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="{w:g}dp"
+    android:height="{h:g}dp"
+    android:viewportWidth="{w:g}"
+    android:viewportHeight="{h:g}">
+    <group
+        android:scaleX="{s / 32:g}"
+        android:scaleY="{s / 32:g}"
+        android:translateX="{(w - s) / 2:g}"
+        android:translateY="{(h - s) / 2:g}">
+""" + body + """    </group>
+</vector>
+""")
+
+
+# Fox and "Kit" mascot artwork: illustrations get the logo, tinted icons the bare Q.
+FOX_ILLUSTRATIONS = ("fox_*.xml", "ic_kit_*.xml", "kit_*.xml", "illustration_fox_*.xml",
+                     "firefox_as_default_banner_illustration.xml")
+FOX_ICONS = ("ic_status_logo.xml", "mozac_ic_kit_*.xml")
+AC_RES = "mobile/android/android-components/components"
+AC_FOX = ((AC_RES + "/lib/llm-mlpa/src/main/res/drawable/firefox_icon.xml", False),
+          (AC_RES + "/ui/icons/src/main/res/drawable/mozac_ic_logo_firefox_24.xml", True))
+Q_MARK = "M19.5,19.5L25,25"
 
 
 def solid(color):
@@ -153,6 +186,8 @@ def bitmap_svg(name, w, h):
         return logo_svg(w, h, LIME)
     if name.startswith("fenix_search_widget"):
         return wordmark_svg(w, h, LIME, "#ffffff")
+    if name.startswith(("fenix_error", "kit_")):
+        return logo_svg(w, h, LIME)
     return None
 
 
@@ -181,6 +216,14 @@ def run(t, branding):
             t.write(p.relative_to(t.root).as_posix(), adaptive_foreground(LIME))
 
     main = RES % "main"
+    fox = [(pat, False) for pat in FOX_ILLUSTRATIONS] + [(pat, True) for pat in FOX_ICONS]
+    rels = [(p.relative_to(t.root).as_posix(), mono)
+            for pat, mono in fox for p in sorted((t.root / main).glob("drawable*/" + pat))]
+    for rel, mono in rels + list(AC_FOX):
+        text = t.read(rel)
+        if Q_MARK not in text:
+            t.write(rel, sized_logo(text, mono))
+
     t.write(main + "/drawable/ic_launcher_monochrome.xml", adaptive_foreground("#ffffff"))
     t.write(main + "/drawable/ic_launcher_private_foreground.xml", adaptive_foreground(PURPLE))
     t.write(main + "/drawable/ic_launcher_private_background.xml", solid(DARK))
