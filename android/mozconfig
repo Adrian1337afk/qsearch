@@ -1,0 +1,19 @@
+# qsearch for Android (GeckoView + Fenix), arm64
+ac_add_options --enable-project=mobile/android
+ac_add_options --target=aarch64-linux-android
+
+ac_add_options --enable-release
+ac_add_options --enable-optimize
+ac_add_options --disable-debug
+ac_add_options --disable-tests
+ac_add_options --disable-crashreporter
+ac_add_options --disable-updater
+ac_add_options --enable-update-channel=release
+ac_add_options --with-app-basename=qsearch
+
+export MOZ_TELEMETRY_REPORTING=
+export MOZ_CRASHREPORTER=
+export MOZ_DATA_REPORTING=
+export MOZ_INCLUDE_SOURCE_INFO=1
+
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-qsearch-android

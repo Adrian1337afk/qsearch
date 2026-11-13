@@ -35,6 +35,10 @@ Linux x86_64: `qsearch-…linux-x86_64.AppImage` from the same page. Make it
 executable (`chmod +x`) and start it. Needs glibc 2.18 or newer, GTK 3 and
 FUSE 2 (`libfuse2`); without FUSE start it with `--appimage-extract-and-run`.
 
+Android (arm64): `qsearch-…android-arm64.apk` from the same page. It is a
+rebranded, hardened Firefox for Android and has none of the desktop features
+below. Allow installing from your browser or file manager when Android asks.
+
 The files are not code-signed, so Windows SmartScreen shows "Unknown
 publisher" on first start: choose "More info", then "Run anyway". Check the
 SHA-256 sums in the release notes if you want to be sure the download is
@@ -155,6 +159,53 @@ cp /path/to/qsearch/config/mozconfig.linux mozconfig
 ./mach build
 ./mach package
 /path/to/qsearch/scripts/make_appimage.sh obj-qsearch-linux/dist/qsearch-153.7.0.en-US.linux-x86_64.tar.xz .
+```
+
+## Build (Android)
+
+The Android app is its own, much smaller project: Firefox for Android (Fenix)
+from the same ESR tag, with the qsearch name, id `de.qdran.qsearch`, logo,
+DuckDuckGo and hardened defaults. It has **none of the desktop features**
+(layouts, lock-button menu, new tab page, containers, panic, command palette):
+the Android interface is separate Kotlin code. The desktop release patch is
+not applied; `android/apply_android.py` makes every change.
+
+What it changes: telemetry, crash reporting, studies, onboarding and
+terms-of-use prompt off; no stories or sponsored tiles; DuckDuckGo default;
+strict tracking protection; HTTPS-only; Global Privacy Control; uBlock Origin
+offered on first start (normal add-on prompt). The approach follows
+[IronFox](https://gitlab.com/ironfox-oss/IronFox); no IronFox code is included.
+
+Tested on Ubuntu 26.04 under WSL 2 (Linux filesystem). Needs about 60 GB free
+disk, 16 GB RAM plus swap.
+
+```bash
+sudo apt install git curl python3 python3-venv build-essential m4 unzip zip librsvg2-bin imagemagick fonts-dejavu-core
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+rustup target add aarch64-linux-android
+
+git clone --depth 1 --branch FIREFOX_153_7_0esr_RELEASE https://github.com/mozilla-firefox/firefox.git firefox
+cd firefox
+./mach --no-interactive bootstrap --application-choice mobile_android
+./mach python python/mozboot/mozboot/android.py --no-interactive   # SDK + NDK, if bootstrap skipped them
+cd ..
+
+/path/to/qsearch/android/make_keystore.sh ~/qsearch-keys            # once; keep it safe, never commit it
+/path/to/qsearch/android/build_android.sh firefox ~/qsearch-keys
+```
+
+The result is `qsearch-153.7.0-android-arm64.apk`. An update installs over the
+old app only when it is signed with the same keystore.
+
+```
+android/mozconfig                 build flags (arm64, no crash reporter)
+android/geckoview-prefs.qsearch.js  engine prefs appended to geckoview-prefs.js
+android/apply_android.py          every source change (id, strings, privacy, search)
+android/make_android_icons.py     icons and wordmarks from the logo
+android/make_keystore.sh          creates the release keystore
+android/build_android.sh          apply + build + sign
+android/emulator_setup.sh         Android 14 emulator for testing
+android/emulator_run.sh           starts it and installs an APK
 ```
 
 ## Changing things
