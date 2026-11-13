@@ -77,7 +77,12 @@ def sized_logo(old_xml, mono=False):
     w = float(re.search(r'android:width="([\d.]+)dp"', old_xml).group(1))
     h = float(re.search(r'android:height="([\d.]+)dp"', old_xml).group(1))
     s = min(w, h)
-    body = Q_PATHS.format(c="#ffffff") if mono else BOX_PATH.format(c=DARK) + Q_PATHS.format(c=LIME)
+    if mono == "layer":
+        # Like the launcher foreground: the lime Q alone, at about half the size.
+        s *= 0.55
+        body = Q_PATHS.format(c=LIME)
+    else:
+        body = Q_PATHS.format(c="#ffffff") if mono else BOX_PATH.format(c=DARK) + Q_PATHS.format(c=LIME)
     return (LICENSE + f"""<vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="{w:g}dp"
     android:height="{h:g}dp"
@@ -217,6 +222,9 @@ def run(t, branding):
 
     main = RES % "main"
     fox = [(pat, False) for pat in FOX_ILLUSTRATIONS] + [(pat, True) for pat in FOX_ICONS]
+    # Previews of the alternative launcher icons (Settings > Customize > App icon).
+    fox += [(f"ic_{name}.xml", "layer") for name in
+            ("cool", "cuddling", "flaming", "minimal", "momo", "pixelated", "pride", "retro_2004")]
     rels = [(p.relative_to(t.root).as_posix(), mono)
             for pat, mono in fox for p in sorted((t.root / main).glob("drawable*/" + pat))]
     for rel, mono in rels + list(AC_FOX):
