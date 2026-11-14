@@ -337,6 +337,20 @@ def step_45_colours(t):
               "appContext.getPreferenceKey(R.string.pref_key_dark_theme),\n        default = true,")
 
 
+def step_47_icon_picker(t):
+    """Settings > Customize > App icon: drop the "Featured" group. Its eight
+    icons were fox drawings; without them they only repeat the Light icon."""
+    r = SRC + "/iconpicker/AppIconRepository.kt"
+    text = t.read(r)
+    start = text.find("            IconGroupTitle(R.string.alternative_app_icon_group_featured) to listOf(")
+    if start < 0:
+        if "alternative_app_icon_group_solid_colors" not in text:
+            die(f"{r}: icon groups not found")
+        return
+    end = text.index("            IconGroupTitle(R.string.alternative_app_icon_group_solid_colors)", start)
+    t.write(r, text[:start] + text[end:])
+
+
 def step_50_icons(t):
     import make_android_icons
     make_android_icons.run(t, HERE.parent / "branding")
